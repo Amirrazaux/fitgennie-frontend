@@ -63,7 +63,7 @@ export default function ProfilePage() {
     console.log("Sending payload:", payload);
 
     try {
-      const response = await fetch("https://fitgennie.onrender.com/save-profile", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/save-profile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -23,7 +23,7 @@ export default function MaintenanceCalculator({
         try {
             setLoading(true)
             let response = await fetch(
-                "https://fitgennie.onrender.com/maintenance-calories",
+                `${process.env.NEXT_PUBLIC_API_URL}/maintenance-calories`,
                 {
                     method: "POST",
 

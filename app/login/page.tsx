@@ -18,7 +18,7 @@ export default function LoginPage() {
             setLoading(true);
 
             let response = await fetch(
-                "https://fitgennie.onrender.com/login",
+                `${process.env.NEXT_PUBLIC_API_URL}/login`,
                 {
                     method: "POST",
                     headers: {

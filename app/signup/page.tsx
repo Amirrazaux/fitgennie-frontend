@@ -20,7 +20,7 @@ export default function SignupPage() {
             setLoading(true);
 
             let response = await fetch(
-                "https://fitgennie.onrender.com/signup",
+                `${process.env.NEXT_PUBLIC_API_URL}/signup`,
                 {
                     method: "POST",
                     headers: {

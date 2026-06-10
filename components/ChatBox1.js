@@ -46,7 +46,7 @@ export default function ChatBox() {
             if (!email) return;
 
             let response = await fetch(
-                `https://fitgennie.onrender.com/get-chat/${email}`
+                `${process.env.NEXT_PUBLIC_API_URL}/get-chat/${email}`
             );
 
             let data = await response.json();
@@ -111,7 +111,7 @@ export default function ChatBox() {
         try {
             
             let response = await fetch(
-                "https://fitgennie.onrender.com/chat",
+                `${process.env.NEXT_PUBLIC_API_URL}/chat`,
                 {
                     method: "POST",
 
@@ -154,7 +154,7 @@ export default function ChatBox() {
     async function clearChats() {
         try{
             const email =localStorage.getItem("userEmail");
-            await fetch(`https://fitgennie.onrender.com/clear-chat/${email}`,
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/clear-chat/${email}`,
                 {
                     method: "DELETE"
                 }

@@ -18,7 +18,7 @@ export default function FoodAnalyzer() {
 
             setLoading(true);
             let response = await fetch(
-                "https://fitgennie.onrender.com/analyze-food",
+                `${process.env.NEXT_PUBLIC_API_URL}/analyze-food`,
                 {
                     method: "POST",
 

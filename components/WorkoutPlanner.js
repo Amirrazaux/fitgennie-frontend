@@ -17,7 +17,7 @@ export default function WorkoutPlannerPage() {
         try {
             setLoading(true)
             let response = await fetch(
-                "https://fitgennie.onrender.com/workout-plan",
+                `${process.env.NEXT_PUBLIC_API_URL}/workout-plan`,
                 {
                     method: "POST",
 
