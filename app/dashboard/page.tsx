@@ -104,7 +104,7 @@ export default function Dashboard() {
                     <div>
 
                         <h1 className="text-3xl md:text-5xl font-bold text-center md:text-left">
-                            Welcome Back 👋
+                            Welcome Back 
                         </h1>
 
                         <p className="text-slate-400 mt-2 text-lg">
