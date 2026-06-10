@@ -17,7 +17,7 @@ export default function WorkoutPlannerPage() {
         try {
             setLoading(true)
             let response = await fetch(
-                "http://127.0.0.1:8000/workout-plan",
+                "https://fitgennie.onrender.com/workout-plan",
                 {
                     method: "POST",
 

@@ -35,7 +35,7 @@ export default function Dashboard() {
 
             if (!email) return;
 
-            let response = await fetch(`http://127.0.0.1:8000/get-profile/${email}`);
+            let response = await fetch(`https://fitgennie.onrender.com/get-profile/${email}`);
             let data = await response.json();
 
             setProfile({

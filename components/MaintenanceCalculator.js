@@ -23,7 +23,7 @@ export default function MaintenanceCalculator({
         try {
             setLoading(true)
             let response = await fetch(
-                "http://127.0.0.1:8000/maintenance-calories",
+                "https://fitgennie.onrender.com/maintenance-calories",
                 {
                     method: "POST",
 

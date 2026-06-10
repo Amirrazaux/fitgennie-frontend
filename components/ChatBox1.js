@@ -46,7 +46,7 @@ export default function ChatBox() {
             if (!email) return;
 
             let response = await fetch(
-                `http://127.0.0.1:8000/get-chat/${email}`
+                `https://fitgennie.onrender.com/get-chat/${email}`
             );
 
             let data = await response.json();
@@ -111,7 +111,7 @@ export default function ChatBox() {
         try {
             
             let response = await fetch(
-                "http://127.0.0.1:8000/chat",
+                "https://fitgennie.onrender.com/chat",
                 {
                     method: "POST",
 
@@ -154,7 +154,7 @@ export default function ChatBox() {
     async function clearChats() {
         try{
             const email =localStorage.getItem("userEmail");
-            await fetch(`http://127.0.0.1:8000/clear-chat/${email}`,
+            await fetch(`https://fitgennie.onrender.com/clear-chat/${email}`,
                 {
                     method: "DELETE"
                 }

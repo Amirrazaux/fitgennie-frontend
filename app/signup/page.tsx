@@ -20,7 +20,7 @@ export default function SignupPage() {
             setLoading(true);
 
             let response = await fetch(
-                "http://127.0.0.1:8000/signup",
+                "https://fitgennie.onrender.com/signup",
                 {
                     method: "POST",
                     headers: {
