@@ -155,7 +155,7 @@ export default function ProfilePage() {
 
                         <h1 className="text-4xl font-bold text-white">
 
-                            {name || "FitGenie User"}
+                            {name || "FitGennie User"}
 
                         </h1>
 
