@@ -28,7 +28,7 @@ export default function Sidebar() {
         <div className="p-8 border-b border-slate-800">
 
             <h1 className=" text-3xl font-extrabold bg-gradient-to-r from-blue-500 via-cyan-400 to-purple-500 bg-clip-text text-transparent">
-                FitGenie
+                Fitgennie
             </h1>
 
                 
