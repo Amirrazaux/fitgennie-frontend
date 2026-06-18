@@ -13,41 +13,35 @@ export default function FoodAnalyzer() {
     const [loading, setLoading] = useState(false);
 
     async function analyzeFood() {
+    try {
+        setLoading(true);
 
-        try {
+        let response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/analyze-food`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    food: food || "",
+                    image: image || "",
+                    email: localStorage.getItem("userEmail") || "",
+                }),
+            }
+        );
 
-            setLoading(true);
-            let response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/analyze-food`,
-                {
-                    method: "POST",
+        let data = await response.json();
 
-                    headers: {
-                        "Content-Type":
-                        "application/json"
-                    },
+        // 🔥 IMPORTANT FIX
+        setResult(data.result);
 
-                    body: JSON.stringify({
-
-                        food: food || "",
-                        image: image || "",
-                        email: localStorage.getItem("userEmail") || ""
-                    }
-                
-                )
-                }
-            );
-
-            let data = await response.json();
-
-            setResult(data.result);
-            setLoading(false)
-
-        } catch (error) {
-            setLoading(false)
-            alert("Food Analyzer Error");
-        }
+        setLoading(false);
+    } catch (error) {
+        setLoading(false);
+        alert("Food Analyzer Error");
     }
+}
 
 
 function handleImage(e) {
@@ -65,6 +59,7 @@ function handleImage(e) {
         console.log("Base64 length:", base64.length);
 
         setImage(base64);
+        console.log("Api response:",data);
     };
 
     reader.readAsDataURL(file);

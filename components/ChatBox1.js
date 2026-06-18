@@ -179,7 +179,7 @@ export default function ChatBox() {
 
             <h1 className="text-2xl font-bold text-white">
 
-                🤖 AI Fitness Coach
+                🤖 AI Chat
 
             </h1>
             <span className="ml-3 text-green-400 text-sm">Online</span>

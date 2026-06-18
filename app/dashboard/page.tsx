@@ -4,230 +4,245 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar1";
 import ChatBox from "../../components/ChatBox1";
-import FoodInput from "../../components/FoodInput";
-import MaintenanceCalculator from "../../components/MaintenanceCalculator";
-import WorkoutPlanner from "../../components/WorkoutPlanner";
 import CalorieCard from "../../components/CalorieCard";
 import ProteinCard from "../../components/ProteinCard";
 import WorkoutCard from "../../components/WorkoutCard";
 
 export default function Dashboard() {
-    const router = useRouter();
-    const [name, setName] = useState("User");
-    const [calories, setCalories] = useState(2200);
-    const [protein, setProtein] = useState(120);
-    const [workout, setWorkout] = useState("Pushups 10 X 3\nSquats 12 X 3\nRunning 10 Mins");
+  const router = useRouter();
 
-    // PROFILE STATE
-    const [profile, setProfile] = useState({
+  const [name, setName] = useState("User");
+  const [email, setEmail] = useState("");
+
+  const [calories, setCalories] = useState(2200);
+  const [protein, setProtein] = useState(120);
+  const [workout, setWorkout] = useState(
+    "Pushups 10 X 3\nSquats 12 X 3\nRunning 10 Mins"
+  );
+
+  const [profile, setProfile] = useState({
+    goal: "",
+    weight: "",
+    streak: 1,
+    profile_image: "",
+    email: ""
+  });
+
+  useEffect(() => {
+    if (!localStorage.getItem("loggedIn")) {
+      router.push("/login");
+      return;
+    }
+
+    // ✅ Get user email from localStorage
+    const userEmail = localStorage.getItem("userEmail");
+    
+    if (!userEmail) {
+      router.push("/login");
+      return;
+    }
+
+    setEmail(userEmail);
+
+    // ✅ Use email as key for all user-specific data
+    const profileKey = `profile_${userEmail}`;
+    const dashboardKey = `dashboard_${userEmail}`;
+    const chatHistoryKey = `chatHistory_${userEmail}`;
+
+    const savedProfile = localStorage.getItem(profileKey);
+
+    if (savedProfile) {
+      const profileData = JSON.parse(savedProfile);
+
+      setName(profileData.name || "User");
+
+      // 🔥 FIXED STREAK LOGIC
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      let streak = profileData.streak || 1;
+      let lastLogin = profileData.lastLogin;
+
+      if (!lastLogin) {
+        streak = 1;
+      } else {
+        const lastDate = new Date(lastLogin);
+        lastDate.setHours(0, 0, 0, 0);
+
+        const diffTime = today.getTime() - lastDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) {
+          streak = profileData.streak;
+        } else if (diffDays === 1) {
+          streak = (profileData.streak || 1) + 1;
+        } else if (diffDays > 1) {
+          streak = 1;
+        }
+      }
+
+      const updatedProfile = {
+        ...profileData,
+        streak,
+        lastLogin: today.toISOString(),
+        email: userEmail
+      };
+
+      localStorage.setItem(profileKey, JSON.stringify(updatedProfile));
+
+      setProfile({
+        goal: updatedProfile.goal || "",
+        weight: updatedProfile.weight || "",
+        streak: updatedProfile.streak || 1,
+        profile_image: updatedProfile.profile_image || "",
+        email: updatedProfile.email || userEmail
+      });
+    } else {
+      // First time user with this email - create default profile
+      const defaultProfile = {
+        name: "User",
         goal: "",
         weight: "",
         streak: 1,
-        profile_image: ""
-    });
+        profile_image: "",
+        email: userEmail,
+        lastLogin: new Date().toISOString()
+      };
 
-    // =========================
-    // LOAD PROFILE
-    // =========================
-    async function loadProfile() {
-        try {
-            const email = localStorage.getItem("userEmail");
-
-            if (!email) return;
-
-            let response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/get-profile/${email}`);
-            let data = await response.json();
-
-            setProfile({
-                goal: data.goal || "",
-                weight: data.weight || "",
-                streak: data.streak || 1,
-                profile_image: data.profile_image || ""
-            });
-        } catch (error) {
-            console.log(error);
-        }
+      localStorage.setItem(profileKey, JSON.stringify(defaultProfile));
+      setProfile(defaultProfile);
     }
 
-    // =========================
-    // USE EFFECT
-    // =========================
-    useEffect(() => {
-        loadProfile();
+    // ✅ Load email-specific dashboard data
+    const dashboardData = localStorage.getItem(dashboardKey);
 
-        let loggedIn = localStorage.getItem("loggedIn");
-        if (!loggedIn) {
-            router.push("/login");
-        }
+    if (dashboardData) {
+      const data = JSON.parse(dashboardData);
 
-        let savedProfile = localStorage.getItem("profile");
-        if (savedProfile) {
-            let data = JSON.parse(savedProfile);
-            setName(data.name || "User");
-        }
-    }, []);
+      setCalories(data.calories || 2200);
+      setProtein(data.protein || 120);
+      setWorkout(
+        data.workout ||
+        "Pushups 10 X 3\nSquats 12 X 3\nRunning 10 Mins"
+      );
+    }
 
-    return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
+    // ✅ Pass email to ChatBox via localStorage for chat history
+    const chatHistory = localStorage.getItem(chatHistoryKey);
+    if (chatHistory) {
+      // ChatBox will read this from localStorage
+      console.log("Chat history found for user:", userEmail);
+    }
+  }, []);
 
-        <Sidebar />
+  // ✅ Function to save dashboard data (email-specific)
+  const saveDashboardData = (data: { calories: number; protein: number; workout: string }) => {
+    const dashboardKey = `dashboard_${email}`;
+    localStorage.setItem(dashboardKey, JSON.stringify(data));
+    setCalories(data.calories);
+    setProtein(data.protein);
+    setWorkout(data.workout);
+  };
 
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 lg:ml-64 overflow-x-hidden">
+  return (
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+      <Sidebar />
 
-            {/* HEADER */}
+      <div className="flex-1 lg:ml-64 p-6 space-y-8">
+        {/* HEADER - DYNAMIC WITH USER EMAIL */}
+        <div className="flex items-center justify-between p-6 rounded-3xl border border-slate-700 bg-gradient-to-r from-slate-900/70 to-slate-800/40 backdrop-blur-xl shadow-lg">
+          <div className="flex items-center gap-5">
+            {profile.profile_image ? (
+              <img
+                src={profile.profile_image}
+                className="w-20 h-20 rounded-full border-2 border-cyan-400 shadow-lg object-cover"
+                alt="Profile"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-2xl font-bold shadow-lg">
+                {name.charAt(0)}
+              </div>
+            )}
 
-            <div className="flex items-center justify-between mb-10">
-                
-
-                <div className="flex flex-col md:flex-row items-center gap-5">
-                    {profile?.profile_image ? (
-
-                        <img
-                            src={profile.profile_image}
-                            alt="Profile"
-                            className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 shadow-lg"
-                        />
-
-                    ) : (
-
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white flex items-center justify-center text-4xl font-bold shadow-lg">
-
-                            {name?.charAt(0)}
-                            
-
-                        </div>
-                        
-
-                    )}
-                    
-
-                    <div>
-
-                        <h1 className="text-3xl md:text-5xl font-bold text-center md:text-left">
-                            Welcome Back 👏
-                        </h1>
-
-                        <p className="text-slate-400 mt-2 text-lg">
-                            {name}'s AI Fitness Dashboard
-                        </p>
-
-                    </div>
-                    
-
-                </div>
-                <div className="bg-green-500/20 border border-green-500/ px-4 py-2 rounded-full text-green-400 text-sm font-semibold">
-                🤖AI Online</div>
-
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 text-transparent bg-clip-text">
+                Welcome {name}
+              </h1>
+              <p className="text-slate-400">
+                {name}'s AI Fitness Dashboard
+                {email && <span className="text-xs ml-2 text-slate-500">({email})</span>}
+              </p>
             </div>
+          </div>
 
-            {/* DYNAMIC CARDS */}
-
-            <div
-                id="workout-section"
-                className="grid grid-cols-1 md:grid-cols-3 gap-5"
-            >
-
-                <CalorieCard calories={calories} />
-
-                <ProteinCard protein={protein} />
-
-                <WorkoutCard workout={workout} />
-
-            </div>
-
-            {/* PROFILE CARDS */}
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
-
-                <div className="bg-slate-900/60 backdrop-blur-lg border border-slate-700 p-6 rounded-3xl shadow-lg hover:scale-105 hover:border-blue-500 transition-all duration-300">
-
-                    <h2 className="text-slate-400 text-lg">
-                        🎯 Goal
-                    </h2>
-
-                    <p className="text-4xl font-bold mt-3">
-                        {profile.goal || "Not Set"}
-                    </p>
-
-                </div>
-
-                <div className="bg-slate-900/60 backdrop-blur-lg border border-slate-700 p-6 rounded-3xl shadow-lg hover:scale-105 hover:border-blue-500 transition-all duration-300">
-
-                    <h2 className="text-slate-400 text-lg">
-                        ⚖ Weight
-                    </h2>
-
-                    <p className="text-4xl font-bold mt-3">
-                        {profile.weight || 0} kg
-                    </p>
-
-                </div>
-
-                <div className="bg-slate-900/60 backdrop-blur-lg border border-slate-700 p-6 rounded-3xl shadow-lg hover:scale-105 hover:border-blue-500 transition-all duration-300">
-
-                    <h2 className="text-slate-400 text-lg">
-                        🔥 Fitness Streak
-                    </h2>
-
-                    <p className="text-5xl font-bold mt-3">
-                        {profile.streak || 1}
-                    </p>
-
-                    <p className="text-slate-400 mt-2">
-                        Keep the momentum going 🚀
-                    </p>
-
-                </div>
-
-            </div>
-
-            {/* CHAT */}
-
-            <div
-                id="chat-section"
-                className="mt-10"
-            >
-                <ChatBox />
-
-            </div>
-
-            {/* FOOD */}
-
-            <div
-                id="food-section"
-                className="mt-10"
-            >
-                <FoodInput />
-
-            </div>
-
-            {/* MAINTENANCE */}
-
-            <div
-                id="maintenance-section"
-                className="mt-10"
-            >
-            <MaintenanceCalculator
-                    setCalories={setCalories}
-                    setProtein={setProtein}
-                    setWorkout={setWorkout}
-                />
-
-            </div>
-
-            {/* WORKOUT */}
-
-            <div
-                id="workout-planner-section"
-                className="mt-10"
-            >
-
-                <WorkoutPlanner />
-
-            </div>
-
+          <div className="px-4 py-2 rounded-full text-sm font-medium text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 shadow-md">
+            🤖 AI Online
+          </div>
         </div>
 
+        {/* CARDS SECTION - DYNAMIC DATA */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+          <div className="group relative h-full rounded-3xl overflow-hidden border border-white/10 bg-slate-900/40 p-[1px] transition-all duration-300 hover:-translate-y-1 hover:ring-2 hover:ring-orange-400/30 hover:shadow-[0_0_30px_rgba(249,115,22,0.25)]">
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-orange-500 via-red-500 to-yellow-400 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-25"></div>
+            <div className="relative z-10 h-full">
+              <CalorieCard calories={calories} />
+            </div>
+          </div>
+
+          <div className="group relative h-full rounded-3xl overflow-hidden border border-white/10 bg-slate-900/40 p-[1px] transition-all duration-300 hover:-translate-y-1 hover:ring-2 hover:ring-emerald-400/30 hover:shadow-[0_0_30px_rgba(16,185,129,0.25)]">
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-emerald-500 via-green-500 to-lime-400 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-25"></div>
+            <div className="relative z-10 h-full">
+              <ProteinCard protein={protein} />
+            </div>
+          </div>
+
+          <div className="group relative h-full rounded-3xl overflow-hidden border border-white/10 bg-slate-900/40 p-[1px] transition-all duration-300 hover:-translate-y-1 hover:ring-2 hover:ring-violet-400/30 hover:shadow-[0_0_30px_rgba(139,92,246,0.25)]">
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500 via-purple-500 to-violet-400 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-25"></div>
+            <div className="relative z-10 h-full">
+              <WorkoutCard workout={workout} />
+            </div>
+          </div>
+        </div>
+
+        {/* PROFILE SECTION - DYNAMIC WITH USER EMAIL */}
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="bg-gradient-to-br from-cyan-900/30 to-slate-800/20 border border-cyan-700/50 rounded-2xl p-6 shadow-md hover:shadow-cyan-500/15 hover:border-cyan-400/50 transition-all duration-300">
+            <p className="text-slate-400 mb-2">🎯 Goal</p>
+            <h2 className="text-2xl font-bold text-cyan-400">
+              {profile.goal || "Not Set"}
+            </h2>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-900/30 to-slate-800/20 border border-green-700/50 rounded-2xl p-6 shadow-md hover:shadow-green-500/15 hover:border-green-400/50 transition-all duration-300">
+            <p className="text-slate-400 mb-2">⚖ Weight</p>
+            <h2 className="text-2xl font-bold text-green-400">
+              {profile.weight || 0} kg
+            </h2>
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-900/30 to-slate-800/20 border border-orange-700/50 rounded-2xl p-6 shadow-md hover:shadow-orange-500/15 hover:border-orange-400/50 transition-all duration-300">
+            <p className="text-slate-400 mb-2">🔥 Streak</p>
+            <h2 className="text-3xl font-bold text-orange-400">
+              {profile.streak}
+            </h2>
+          </div>
+        </div>
+
+        {/* CHAT SECTION - DYNAMIC WITH USER EMAIL */}
+        <div className="bg-gradient-to-br from-slate-900/60 to-slate-800/20 border border-slate-700 rounded-3xl p-6 shadow-lg hover:shadow-cyan-500/10 transition-all duration-300">
+          <div className="mb-4">
+            <h2 className="text-2xl font-semibold text-cyan-300">
+              💬 AI Fitness Coach for {name}
+            </h2>
+            <p className="text-slate-400 text-sm">
+              Ask anything about diet, workout or progress. Chat history saved for: {email}
+            </p>
+          </div>
+
+          {/* Pass email to ChatBox via custom event or localStorage */}
+          <ChatBox userEmail={email} />
+        </div>
+      </div>
     </div>
-);
+  );
 }

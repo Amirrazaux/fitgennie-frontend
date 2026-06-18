@@ -3,34 +3,26 @@
 import { useState } from "react";
 
 export default function MaintenanceCalculator({
-
     setCalories,
     setProtein,
     setWorkout
-
 }) {
-
     const [weight, setWeight] = useState("");
     const [height, setHeight] = useState("");
     const [age, setAge] = useState("");
     const [goal, setGoal] = useState("");
-    const [loading, setLoading]= useState(false)
-
+    const [loading, setLoading] = useState(false);
     const [result, setResult] = useState("");
 
     async function calculateCalories() {
-
         try {
-            setLoading(true)
-            let response = await fetch(
+            setLoading(true);
+
+            const res = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/maintenance-calories`,
                 {
                     method: "POST",
-
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         name: "User",
                         weight,
@@ -41,119 +33,86 @@ export default function MaintenanceCalculator({
                 }
             );
 
-            let data = await response.json();
-
-            setLoading(false)
+            const data = await res.json();
+            setLoading(false);
 
             setResult(data.reply);
 
-            // Dynamic cards update
+            // ✅ UPDATE DASHBOARD STATE
+            const calculatedCalories = data.calories;
+            const calculatedProtein = data.protein;
+            const generatedWorkout = data.workout;
 
-            setCalories(data.calories);
+            setCalories(calculatedCalories);
+            setProtein(calculatedProtein);
+            setWorkout(generatedWorkout);
 
-            setProtein(data.protein);
+            // ✅ SAVE TO LOCALSTORAGE (FOR DASHBOARD SYNC)
+            localStorage.setItem(
+                "dashboardData",
+                JSON.stringify({
+                    calories: calculatedCalories,
+                    protein: calculatedProtein,
+                    workout: generatedWorkout
+                })
+            );
 
-            setWorkout(data.workout);
-
-            
-        } catch (error) {
-            setLoading(false)
+        } catch (err) {
+            setLoading(false);
             setResult("Backend Error");
         }
     }
 
     return (
+        <div className="bg-slate-900/60 backdrop-blur-lg border border-slate-700 p-6 rounded-3xl shadow-xl">
 
-    <div className="bg-slate-900/60 backdrop-blur-lg border border-slate-700 p-6 rounded-3xl shadow-xl">
-
-        {/* HEADER */}
-
-        <div className="mb-6">
-
-            <h2 className="text-2xl font-bold text-white">
-
+            <h2 className="text-2xl font-bold mb-4">
                 🔥 AI Maintenance Calculator
-
             </h2>
 
-            <p className="text-slate-400 mt-2">
+            <div className="grid md:grid-cols-2 gap-4">
 
-                Calculate calories, protein and workout recommendations
+                <input placeholder="Weight"
+                    className="w-full bg-slate-800 border border-slate-700 text-white p-4 rounded-xl outline-none focus:border-blue-500"
+                    onChange={(e) => setWeight(e.target.value)}
+                />
 
-            </p>
+                <input placeholder="Height"
+                    className="w-full bg-slate-800 border border-slate-700 text-white p-4 rounded-xl outline-none focus:border-blue-500"
+                    onChange={(e) => setHeight(e.target.value)}
+                />
 
-        </div>
+                <input placeholder="Age"
+                    className="w-full bg-slate-800 border border-slate-700 text-white p-4 rounded-xl outline-none focus:border-blue-500"
+                    onChange={(e) => setAge(e.target.value)}
+                />
 
-        {/* INPUTS */}
+                <input placeholder="Goal"
+                    className="w-full bg-slate-800 border border-slate-700 text-white p-4 rounded-xl outline-none focus:border-blue-500"
+                    onChange={(e) => setGoal(e.target.value)}
+                />
 
-        <div className="grid md:grid-cols-2 gap-4">
+            </div>
 
-            <input
-                type="text"
-                placeholder="Weight (kg)"
-                className="bg-slate-800 border border-slate-700 text-white p-4 rounded-xl outline-none focus:border-blue-500"
-                onChange={(e) => setWeight(e.target.value)}
-            />
+            <button
+                onClick={calculateCalories}
+                className="mt-5 bg-orange-600 hover:bg-orange-700 px-8 py-3 rounded-xl text-white font-semibold transition-all"
+                >
+                Calculate
+            </button>
+        <div className="mt-6">  
+            {loading && <p className="bg-slate-800 border border-slate-700 text-white p-4 rounded-2xl w-fit">🧠 Calculating...</p>}
 
-            <input
-                type="text"
-                placeholder="Height (cm)"
-                className="bg-slate-800 border border-slate-700 text-white p-4 rounded-xl outline-none focus:border-blue-500"
-                onChange={(e) => setHeight(e.target.value)}
-            />
 
-            <input
-                type="text"
-                placeholder="Age"
-                className="bg-slate-800 border border-slate-700 text-white p-4 rounded-xl outline-none focus:border-blue-500"
-                onChange={(e) => setAge(e.target.value)}
-            />
 
-            <input
-                type="text"
-                placeholder="Goal (Fat Loss / Muscle Gain)"
-                className="bg-slate-800 border border-slate-700 text-white p-4 rounded-xl outline-none focus:border-blue-500"
-                onChange={(e) => setGoal(e.target.value)}
-            />
-
-        </div>
-
-        {/* BUTTON */}
-
-        <button
-            onClick={calculateCalories}
-            className="mt-5 bg-orange-500 hover:bg-orange-600 px-8 py-3 rounded-xl text-white font-semibold transition-all"
-        >
-            Calculate
-        </button>
-
-        {/* RESULT */}
-
-        <div className="mt-6">
-
-            {loading && (
-
-                <div className="bg-slate-800 border border-slate-700 text-white p-4 rounded-2xl w-fit">
-
-                    🧠 AI is calculating...
-
-                </div>
-
-            )}
-
-            {!loading && result && (
-
+            {result && (
                 <div className="bg-slate-950 border border-slate-700 text-slate-200 p-5 rounded-2xl whitespace-pre-line leading-7">
 
                     {result}
-
                 </div>
-
             )}
+            </div>
 
         </div>
-
-    </div>
-
-);
+    );
 }

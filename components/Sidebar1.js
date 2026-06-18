@@ -68,28 +68,28 @@ export default function Sidebar() {
                 </div>
             </Link>
 
-            <a href="#chat-section">
+            <a href="/dashboard">
                 <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 hover:text-blue-400 cursor-pointer transition-all duration-300 hover:translate-x-1">
                     <span>🤖</span>
                     <span>AI Chat</span>
                 </div>
             </a>
 
-            <a href="#food-section">
+            <a href="/analyzer">
                 <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 hover:text-blue-400 cursor-pointer transition-all duration-300 hover:translate-x-1">
                     <span>🍎</span>
                     <span>Food Analyzer</span>
                 </div>
             </a>
 
-            <a href="#maintenance-section">
+            <a href="/maintain">
                 <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 hover:text-blue-400 cursor-pointer transition-all duration-300 hover:translate-x-1">
                     <span>🔥</span>
                     <span>Maintenance</span>
                 </div>
             </a>
 
-            <a href="#workout-planner-section">
+            <a href="/workout">
                 <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 hover:text-blue-400 cursor-pointer transition-all duration-300 hover:translate-x-1">
                     <span>💪</span>
                     <span>Workout Planner</span>
