@@ -22,7 +22,114 @@ export default function Dashboard() {
     "Pushups 10 X 3\nSquats 12 X 3\nRunning 10 Mins"
   );
 
-  const [profile, setProfile] = useState(null);
+  "use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Sidebar from "../../components/Sidebar1";
+import ChatBox from "../../components/ChatBox1";
+import CalorieCard from "../../components/CalorieCard";
+import ProteinCard from "../../components/ProteinCard";
+import WorkoutCard from "../../components/WorkoutCard";
+
+export default function Dashboard() {
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(true);
+
+  const [name, setName] = useState("User");
+  const [email, setEmail] = useState("");
+
+  const [calories, setCalories] = useState(2200);
+  const [protein, setProtein] = useState(120);
+  const [workout, setWorkout] = useState(
+    "Pushups 10 X 3\nSquats 12 X 3\nRunning 10 Mins"
+  );
+
+  const [profile, setProfile] = useState({
+  goal: "",
+  weight: "",
+  streak: 1,
+  profile_image: "",
+  email: "",
+});
+
+  useEffect(() => {
+    if (!localStorage.getItem("loggedIn")) {
+      router.push("/login");
+      return;
+    }
+
+    const userEmail = localStorage.getItem("userEmail");
+
+    if (!userEmail) {
+      router.push("/login");
+      return;
+    }
+
+    setEmail(userEmail);
+
+    const profileKey = `profile_${userEmail}`;
+    const dashboardKey = `dashboard_${userEmail}`;
+
+    const savedProfile = localStorage.getItem(profileKey);
+
+    if (savedProfile) {
+      const profileData = JSON.parse(savedProfile);
+
+      setName(profileData.name || "User");
+
+      setProfile({
+        goal: profileData.goal || "",
+        weight: profileData.weight || "",
+        streak: profileData.streak, // ✅ NO DEFAULT 1
+        profile_image: profileData.profile_image || "",
+        email: userEmail,
+      });
+    } else {
+      setProfile({
+        goal: "",
+        weight: "",
+        streak: 1,
+        profile_image: "",
+        email: userEmail,
+      });
+    }
+
+    const dashboardData = localStorage.getItem(dashboardKey);
+
+    if (dashboardData) {
+      const data = JSON.parse(dashboardData);
+
+      setCalories(data.calories || 2200);
+      setProtein(data.protein || 120);
+      setWorkout(
+        data.workout ||
+          "Pushups 10 X 3\nSquats 12 X 3\nRunning 10 Mins"
+      );
+    }
+
+    setLoading(false);
+  }, [router]);
+
+  // 🔥 LOADING SCREEN (IMPORTANT FIX)
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-950 text-white">
+        Loading dashboard...
+      </div>
+    );
+  }
+
+  const saveDashboardData = (data) => {
+    const dashboardKey = `dashboard_${email}`;
+
+    localStorage.setItem(dashboardKey, JSON.stringify(data));
+
+    setCalories(data.calories);
+    setProtein(data.protein);
+    setWorkout(data.workout);
+  };
 
   useEffect(() => {
     if (!localStorage.getItem("loggedIn")) {
