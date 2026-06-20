@@ -11,6 +11,8 @@ import WorkoutCard from "../../components/WorkoutCard";
 export default function Dashboard() {
   const router = useRouter();
 
+  const [loading, setLoading] = useState(true);
+
   const [name, setName] = useState("User");
   const [email, setEmail] = useState("");
 
@@ -20,13 +22,7 @@ export default function Dashboard() {
     "Pushups 10 X 3\nSquats 12 X 3\nRunning 10 Mins"
   );
 
-  const [profile, setProfile] = useState({
-    goal: "",
-    weight: "",
-    streak: 1,
-    profile_image: "",
-    email: ""
-  });
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     if (!localStorage.getItem("loggedIn")) {
@@ -34,9 +30,8 @@ export default function Dashboard() {
       return;
     }
 
-    // ✅ Get user email from localStorage
     const userEmail = localStorage.getItem("userEmail");
-    
+
     if (!userEmail) {
       router.push("/login");
       return;
@@ -44,10 +39,8 @@ export default function Dashboard() {
 
     setEmail(userEmail);
 
-    // ✅ Use email as key for all user-specific data
     const profileKey = `profile_${userEmail}`;
     const dashboardKey = `dashboard_${userEmail}`;
-    const chatHistoryKey = `chatHistory_${userEmail}`;
 
     const savedProfile = localStorage.getItem(profileKey);
 
@@ -56,64 +49,23 @@ export default function Dashboard() {
 
       setName(profileData.name || "User");
 
-      // 🔥 FIXED STREAK LOGIC
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      let streak = profileData.streak || 1;
-      let lastLogin = profileData.lastLogin;
-
-      if (!lastLogin) {
-        streak = 1;
-      } else {
-        const lastDate = new Date(lastLogin);
-        lastDate.setHours(0, 0, 0, 0);
-
-        const diffTime = today.getTime() - lastDate.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 0) {
-          streak = profileData.streak;
-        } else if (diffDays === 1) {
-          streak = (profileData.streak || 1) + 1;
-        } else if (diffDays > 1) {
-          streak = 1;
-        }
-      }
-
-      const updatedProfile = {
-        ...profileData,
-        streak,
-        lastLogin: today.toISOString(),
-        email: userEmail
-      };
-
-      localStorage.setItem(profileKey, JSON.stringify(updatedProfile));
-
       setProfile({
-        goal: updatedProfile.goal || "",
-        weight: updatedProfile.weight || "",
-        streak: updatedProfile.streak || 1,
-        profile_image: updatedProfile.profile_image || "",
-        email: updatedProfile.email || userEmail
+        goal: profileData.goal || "",
+        weight: profileData.weight || "",
+        streak: profileData.streak, // ✅ NO DEFAULT 1
+        profile_image: profileData.profile_image || "",
+        email: userEmail,
       });
     } else {
-      // First time user with this email - create default profile
-      const defaultProfile = {
-        name: "User",
+      setProfile({
         goal: "",
         weight: "",
         streak: 1,
         profile_image: "",
         email: userEmail,
-        lastLogin: new Date().toISOString()
-      };
-
-      localStorage.setItem(profileKey, JSON.stringify(defaultProfile));
-      setProfile(defaultProfile);
+      });
     }
 
-    // ✅ Load email-specific dashboard data
     const dashboardData = localStorage.getItem(dashboardKey);
 
     if (dashboardData) {
@@ -123,27 +75,33 @@ export default function Dashboard() {
       setProtein(data.protein || 120);
       setWorkout(
         data.workout ||
-        "Pushups 10 X 3\nSquats 12 X 3\nRunning 10 Mins"
+          "Pushups 10 X 3\nSquats 12 X 3\nRunning 10 Mins"
       );
     }
 
-    // ✅ Pass email to ChatBox via localStorage for chat history
-    const chatHistory = localStorage.getItem(chatHistoryKey);
-    if (chatHistory) {
-      // ChatBox will read this from localStorage
-      console.log("Chat history found for user:", userEmail);
-    }
-  }, []);
+    setLoading(false);
+  }, [router]);
 
-  // ✅ Function to save dashboard data (email-specific)
-  const saveDashboardData = (data: { calories: number; protein: number; workout: string }) => {
+  // 🔥 LOADING SCREEN (IMPORTANT FIX)
+  if (loading || !profile) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-950 text-white">
+        Loading dashboard...
+      </div>
+    );
+  }
+
+  const saveDashboardData = (data) => {
     const dashboardKey = `dashboard_${email}`;
+
     localStorage.setItem(dashboardKey, JSON.stringify(data));
+
     setCalories(data.calories);
     setProtein(data.protein);
     setWorkout(data.workout);
   };
 
+  
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
       <Sidebar />

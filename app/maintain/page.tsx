@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar1";
 import MaintenanceCalculator from "../../components/MaintenanceCalculator";
 
@@ -10,6 +10,28 @@ export default function MaintenancePage() {
     const [workout, setWorkout] = useState(
         "Pushups 10 X 3\nSquats 12 X 3\nRunning 10 Mins"
     );
+
+    useEffect(() => {
+        const userEmail = localStorage.getItem("userEmail");
+
+        if (!userEmail) return;
+
+        const dashboardKey = `dashboard_${userEmail}`;
+
+        const savedData = localStorage.getItem(dashboardKey);
+
+        if (savedData) {
+            const data = JSON.parse(savedData);
+
+            setCalories(data.calories || 2200);
+            setProtein(data.protein || 120);
+            setWorkout(
+                data.workout ||
+                    "Pushups 10 X 3\nSquats 12 X 3\nRunning 10 Mins"
+            );
+        }
+        console.log(calories)
+    }, []);
 
     return (
         <div className="flex min-h-screen bg-slate-900 text-white">
@@ -63,7 +85,7 @@ export default function MaintenancePage() {
 
                     <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-5 hover:scale-[1.02] transition">
                         <h2 className="text-lg font-semibold mb-2">
-                            🏋️ AI Workout Plan
+                            🏋️ AI Workout Suggestion
                         </h2>
                         <p className="text-slate-400 text-sm">
                             Auto-generated workout routine based on your calorie goal.

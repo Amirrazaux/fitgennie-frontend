@@ -3,15 +3,10 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-// ✅ OPTIMIZED: Memoized helper functions
-const formatDate = (date = new Date()) => date.toISOString().split("T")[0];
 
-const isYesterday = (dateString: string) => {
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  return dateString === formatDate(yesterday);
-};
+// ✅ DATE HELPER
+const formatDate = (date = new Date()) =>
+  date.toISOString().split("T")[0];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,93 +15,99 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ OPTIMIZED: Memoized login handler
-  const handleLogin = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = useCallback(
+    async (e) => {
+      e.preventDefault();
 
-    // ✅ OPTIMIZED: Immediate validation (fast fail)
-    if (!email.trim() || !password.trim()) {
-      alert("Please fill all fields");
-      return;
-    }
+      if (!email.trim() || !password.trim()) {
+        alert("Please fill all fields");
+        return;
+      }
 
-    try {
-      setLoading(true);
+      try {
+        setLoading(true);
 
-      // ✅ OPTIMIZED: Single fetch call with proper timeout
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            password,
-          }),
-          // ✅ OPTIMIZED: Add timeout
-          signal: AbortSignal.timeout(10000), // 10s timeout
-        }
-      );
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/login`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+            signal: AbortSignal.timeout(10000),
+          }
+        );
 
-      const data = await response.json();
-      console.log(data);
+        const data = await response.json();
 
-      if (data.message === "Login Successful") {
-        const today = formatDate();
+        if (data.message === "Login Successful") {
+          const today = formatDate();
 
-        // ✅ OPTIMIZED: Single localStorage read
-        const savedProfileRaw = localStorage.getItem("profile");
-        const savedProfile = savedProfileRaw ? JSON.parse(savedProfileRaw) : {};
+          const profileKey = `profile_${email}`;
 
-        const serverStreak = Number(data.streak ?? savedProfile.streak ?? 0);
-        const lastLoginDate = savedProfile.lastLoginDate || data.lastLoginDate || "";
+          const savedProfileRaw = localStorage.getItem(profileKey);
 
-        let updatedStreak = serverStreak;
+          const savedProfile = savedProfileRaw
+            ? JSON.parse(savedProfileRaw)
+            : {};
 
-        if (lastLoginDate === today) {
-          updatedStreak = serverStreak;
-        } else if (lastLoginDate && isYesterday(lastLoginDate)) {
-          updatedStreak = serverStreak + 1;
+          // ✅ FINAL PROFILE OBJECT (SAFE + CLEAN)
+          const updatedProfile = {
+            name: data.name || savedProfile.name || "",
+            age: data.age ?? savedProfile.age ?? "",
+            weight: data.weight ?? savedProfile.weight ?? "",
+            height: data.height ?? savedProfile.height ?? "",
+            gender: data.gender || savedProfile.gender || "",
+            goal: data.goal || savedProfile.goal || "",
+            profile_image:
+              data.profile_image ||
+              savedProfile.profile_image ||
+              "",
+
+            // 🔥 backend streak only
+            streak: data.streak ?? savedProfile.streak ?? 1,
+
+            // 🔥 backend email
+            email: data.email || email,
+
+            lastLoginDate: today,
+          };
+
+          // ✅ GLOBAL LOGIN FLAGS
+          localStorage.setItem("loggedIn", "true");
+          localStorage.setItem(
+            "userEmail",
+            updatedProfile.email
+          );
+
+          // ✅ SAVE PROFILE
+          localStorage.setItem(
+            profileKey,
+            JSON.stringify(updatedProfile)
+          );
+
+          router.push("/dashboard");
         } else {
-          updatedStreak = serverStreak > 0 ? 1 : 1;
+          alert(data.message || "Login Failed");
         }
-
-        const updatedProfile = {
-          name: data.name || savedProfile.name || "",
-          age: data.age ?? savedProfile.age ?? "",
-          weight: data.weight ?? savedProfile.weight ?? "",
-          height: data.height ?? savedProfile.height ?? "",
-          gender: data.gender || savedProfile.gender || "",
-          goal: data.goal || savedProfile.goal || "",
-          profile_image: data.profile_image || savedProfile.profile_image || "",
-          streak: updatedStreak,
-          lastLoginDate: today,
-        };
-
-        // ✅ OPTIMIZED: Batched localStorage writes (faster)
-        localStorage.setItem("loggedIn", "true");
-        localStorage.setItem("userEmail", email);
-        localStorage.setItem("profile", JSON.stringify(updatedProfile));
-
-        // ✅ OPTIMIZED: Fast redirect
-        router.push("/dashboard");
-      } else {
-        alert(data.message || "Login Failed");
+      } catch (error) {
+        if (
+          error instanceof DOMException &&
+          error.name === "AbortError"
+        ) {
+          alert("Connection timeout. Please try again.");
+        } else {
+          alert("Login Failed");
+        }
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      // ✅ OPTIMIZED: Better error handling
-      if (error instanceof DOMException && error.name === "AbortError") {
-        alert("Connection timeout. Please try again.");
-      } else {
-        alert("Login Failed");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [email, password]);
+    },
+    [email, password, router]
+  );
 
+  
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
       <form
@@ -116,6 +117,7 @@ export default function LoginPage() {
         <h1 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent">
           Login
         </h1>
+
         <input
           type="email"
           placeholder="Email"
@@ -123,7 +125,6 @@ export default function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
           className="w-full bg-slate-800/50 border border-slate-600 p-4 rounded-xl mb-5 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
           autoComplete="email"
-          autoFocus
         />
 
         <input
@@ -140,18 +141,15 @@ export default function LoginPage() {
           disabled={loading}
           className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white w-full py-4 rounded-xl font-semibold hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {loading ? "Signing you in..." : "Login"}
+          {loading ? "Signing in..." : "Login"}
         </button>
-        <p className="mt-5 text-center text-slate-400">
-                    Didn't have an account?
 
-                    <Link
-                        href="/signup"
-                        className="text-blue-400 ml-2 hover:text-cyan-400 font-semibold"
-                    >
-                        Signup
-                    </Link>
-                </p>
+        <p className="mt-5 text-center text-slate-400">
+          Didn’t have an account?{" "}
+          <Link href="/signup" className="text-blue-400 ml-2 font-semibold">
+            Signup
+          </Link>
+        </p>
       </form>
     </div>
   );

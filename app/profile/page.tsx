@@ -113,8 +113,8 @@ export default function ProfilePage() {
       height: parseFloat(height),
       gender,
       goal: goal.trim(),
-      // ✅ Image is OPTIONAL (can be null/empty)
-      profile_image: image || null
+      // ✅ Image is OPTIONAL (can be empty)
+      profile_image: image || ""
     };
 
     console.log("Sending payload:", payload);
@@ -153,7 +153,7 @@ export default function ProfilePage() {
         height: parseFloat(height),
         gender,
         goal: goal.trim(),
-        profile_image: image || null
+        profile_image: image || ""
       }));
     } catch (error) {
       console.error(error);
@@ -162,9 +162,25 @@ export default function ProfilePage() {
   }
 
   function removeProfilePicture() {
-    setImage("");
-    alert("✅ Profile picture removed!");
-  }
+     setImage("");
+
+     if (email) {
+        const profileKey = `profile_${email}`;
+
+        const savedProfile = JSON.parse(
+            localStorage.getItem(profileKey) || "{}"
+        );
+
+        savedProfile.profile_image = "";
+
+       localStorage.setItem(
+           profileKey,
+           JSON.stringify(savedProfile)
+       );
+     }
+
+      alert("✅ Profile picture removed!");
+}
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-slate-950 px-4 py-6 md:px-8 md:py-10">
@@ -194,33 +210,37 @@ export default function ProfilePage() {
               <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center gap-5">
                   <div className="relative shrink-0">
-                    {image ? (
-                      <>
-                        <img
-                          src={image}
-                          alt="Profile"
-                          className="h-28 w-28 rounded-full border-4 border-slate-900 object-cover shadow-lg ring-4 ring-white/10 md:h-32 md:w-32"
-                        />
-                        <button
-                          onClick={removeProfilePicture}
-                          className="absolute bottom-1 right-1 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-red-600 text-sm shadow-lg transition hover:scale-110 hover:bg-red-700"
-                        >
-                          🗑️
-                        </button>
+                    
+                       {image ? (
+                          <>
+                           <img
+                             src={image}
+                             alt="Profile"
+                             className="h-28 w-28 rounded-full border-4 border-slate-900 object-cover shadow-lg ring-4 ring-white/10 md:h-32 md:w-32"
+                          />
+
+                        {isEditing && (
+                           <button
+                               onClick={removeProfilePicture}
+                               className="absolute bottom-1 right-1 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-red-600 text-sm shadow-lg transition hover:scale-110 hover:bg-red-700"
+                            >
+                             🗑️
+                           </button>
+                        )}
                       </>
-                    ) : (
+                   ) : (
                       <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-slate-900 bg-gradient-to-br from-blue-500 to-cyan-500 text-5xl font-bold text-white shadow-lg ring-4 ring-white/10 md:h-32 md:w-32">
-                        {name?.charAt(0) || "U"}
+                          {name?.charAt(0) || "U"}
                       </div>
-                    )}
+                   )}
 
                     {isEditing && (
-                      <label
-                        htmlFor="profileImage"
-                        className="absolute bottom-1 right-1 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-blue-600 text-sm shadow-lg transition hover:scale-110 hover:bg-blue-700"
-                      >
+                       <label
+                           htmlFor="profileImage"
+                              className="absolute top-0 right-0 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-blue-600 text-sm shadow-lg transition hover:scale-110 hover:bg-blue-700"
+                       >
                         📷
-                      </label>
+                       </label>
                     )}
 
                     <input
@@ -359,7 +379,7 @@ export default function ProfilePage() {
                   onClick={saveProfile}
                   className="mt-8 w-full rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 py-4 text-lg font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:opacity-95 hover:scale-[1.01]"
                 >
-                  ✅ Save Profile (Photo Optional)
+                   Save Profile 
                 </button>
               )}
             </div>
