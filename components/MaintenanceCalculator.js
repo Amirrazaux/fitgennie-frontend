@@ -47,15 +47,24 @@ export default function MaintenanceCalculator({
             setProtein(calculatedProtein);
             setWorkout(generatedWorkout);
 
-            // ✅ SAVE TO LOCALSTORAGE (FOR DASHBOARD SYNC)
-            localStorage.setItem(
-                "dashboardData",
-                JSON.stringify({
-                    calories: calculatedCalories,
-                    protein: calculatedProtein,
-                    workout: generatedWorkout
-                })
-            );
+            
+            // Save according to logged-in user email
+const userEmail = localStorage.getItem("userEmail");
+
+console.log("Saving for:", userEmail);
+
+if (userEmail) {
+    const dashboardKey = `dashboard_${userEmail}`;
+
+    localStorage.setItem(
+        dashboardKey,
+        JSON.stringify({
+            calories: calculatedCalories,
+            protein: calculatedProtein,
+            workout: generatedWorkout
+        })
+    );
+}
 
         } catch (err) {
             setLoading(false);

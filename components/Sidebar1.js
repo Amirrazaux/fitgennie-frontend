@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter,usePathname } from "next/navigation";
 import { useState } from "react";
 
 export default function Sidebar() {
 
     const router = useRouter();
+    const pathname= usePathname();
     const [isOpen, setIsOpen] = useState(false);
 
     function logout() {
@@ -55,46 +56,70 @@ export default function Sidebar() {
         <div className="flex-1 px-4 py-6 space-y-3">
 
             <Link href="/dashboard">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 cursor-pointer transition-all duration-300 hover:translate-x-1">
-                    <span>🏠</span>
-                    <span>Dashboard</span>
+                <div className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 hover:translate-x-1 ${
+                   pathname === "/dashboard"
+                    ? "bg-blue-500/10 border border-blue-500/30 text-blue-400"
+                    : "hover:bg-slate-800 hover:text-blue-400"
+                 }`}>
+                   <span>🏠</span>
+                   <span>Dashboard</span>
                 </div>
             </Link>
 
             <Link href="/profile">
-                <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 hover:text-blue-400 cursor-pointer transition-all duration-300 hover:translate-x-1">
+                 <div className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 hover:translate-x-1 ${
+                     pathname === "/profile"
+                       ? "bg-blue-500/10 border border-blue-500/30 text-blue-400"
+                       : "hover:bg-slate-800 hover:text-blue-400"
+                 }`}>
                     <span>👤</span>
                     <span>Profile</span>
+                 </div>
+            </Link>
+
+            <Link href="/dashboard">
+                <div className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 hover:translate-x-1 ${
+                    pathname === "/dashboard"
+                       ? "bg-blue-500/10 border border-blue-500/30 text-blue-400"
+                       : "hover:bg-slate-800 hover:text-blue-400"
+                }`}>
+                  <span>🤖</span>
+                  <span>AI Chat</span>
                 </div>
             </Link>
 
-            <a href="/dashboard">
-                <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 hover:text-blue-400 cursor-pointer transition-all duration-300 hover:translate-x-1">
-                    <span>🤖</span>
-                    <span>AI Chat</span>
-                </div>
-            </a>
+            <Link href="/analyzer">
+                 <div className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 hover:translate-x-1 ${
+                     pathname === "/analyzer"
+                        ? "bg-blue-500/10 border border-blue-500/30 text-blue-400"
+                        : "hover:bg-slate-800 hover:text-blue-400"
+                  }`}>
+                     <span>🍎</span>
+                     <span>Food Analyzer</span>
+                 </div>
+            </Link>
 
-            <a href="/analyzer">
-                <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 hover:text-blue-400 cursor-pointer transition-all duration-300 hover:translate-x-1">
-                    <span>🍎</span>
-                    <span>Food Analyzer</span>
+            <Link href="/maintain">
+                <div className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 hover:translate-x-1 ${
+                    pathname === "/maintain"
+                     ? "bg-blue-500/10 border border-blue-500/30 text-blue-400"
+                     : "hover:bg-slate-800 hover:text-blue-400"
+                }`}>
+                   <span>🔥</span>
+                   <span>Maintenance</span>
                 </div>
-            </a>
+            </Link>
 
-            <a href="/maintain">
-                <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 hover:text-blue-400 cursor-pointer transition-all duration-300 hover:translate-x-1">
-                    <span>🔥</span>
-                    <span>Maintenance</span>
+            <Link href="/workout">
+               <div className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 hover:translate-x-1 ${
+                   pathname === "/workout"
+                      ? "bg-blue-500/10 border border-blue-500/30 text-blue-400"
+                      : "hover:bg-slate-800 hover:text-blue-400"
+                }`}>
+                   <span>💪</span>
+                   <span>Workout Planner</span>
                 </div>
-            </a>
-
-            <a href="/workout">
-                <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 hover:text-blue-400 cursor-pointer transition-all duration-300 hover:translate-x-1">
-                    <span>💪</span>
-                    <span>Workout Planner</span>
-                </div>
-            </a>
+            </Link>
 
         </div>
 
