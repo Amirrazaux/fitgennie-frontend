@@ -3,6 +3,9 @@
 import { useState } from "react";
 
 export default function MaintenanceCalculator({
+    calories,      // ← add this
+    protein,       // ← add this
+    workout,       // ← add this
     setCalories,
     setProtein,
     setWorkout
@@ -47,24 +50,23 @@ export default function MaintenanceCalculator({
             setProtein(calculatedProtein);
             setWorkout(generatedWorkout);
 
-            
             // Save according to logged-in user email
-const userEmail = localStorage.getItem("userEmail");
+            const userEmail = localStorage.getItem("userEmail");
 
-console.log("Saving for:", userEmail);
+            console.log("Saving for:", userEmail);
 
-if (userEmail) {
-    const dashboardKey = `dashboard_${userEmail}`;
+            if (userEmail) {
+                const dashboardKey = `dashboard_${userEmail}`;
 
-    localStorage.setItem(
-        dashboardKey,
-        JSON.stringify({
-            calories: calculatedCalories,
-            protein: calculatedProtein,
-            workout: generatedWorkout
-        })
-    );
-}
+                localStorage.setItem(
+                    dashboardKey,
+                    JSON.stringify({
+                        calories: calculatedCalories,
+                        protein: calculatedProtein,
+                        workout: generatedWorkout
+                    })
+                );
+            }
 
         } catch (err) {
             setLoading(false);
