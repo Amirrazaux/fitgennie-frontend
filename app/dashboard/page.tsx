@@ -23,12 +23,12 @@ export default function Dashboard() {
   );
 
   const [profile, setProfile] = useState({
-  goal: "",
-  weight: "",
-  streak: 1,
-  profile_image: "",
-  email: "",
-});
+    goal: "",
+    weight: "",
+    streak: 1,
+    profile_image: "",
+    email: "",
+  });
 
   useEffect(() => {
     if (!localStorage.getItem("loggedIn")) {
@@ -58,7 +58,7 @@ export default function Dashboard() {
       setProfile({
         goal: profileData.goal || "",
         weight: profileData.weight || "",
-        streak: profileData.streak, // ✅ NO DEFAULT 1
+        streak: profileData.streak,
         profile_image: profileData.profile_image || "",
         email: userEmail,
       });
@@ -88,7 +88,6 @@ export default function Dashboard() {
     setLoading(false);
   }, [router]);
 
-  // 🔥 LOADING SCREEN (IMPORTANT FIX)
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-950 text-white">
@@ -97,7 +96,11 @@ export default function Dashboard() {
     );
   }
 
-  const saveDashboardData = (data) => {
+  const saveDashboardData = (data:{
+    calories:number;
+    protein: number;
+    workout: string;
+  }) => {
     const dashboardKey = `dashboard_${email}`;
 
     localStorage.setItem(dashboardKey, JSON.stringify(data));
@@ -108,6 +111,8 @@ export default function Dashboard() {
   };
 
   
+
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
       <Sidebar />
