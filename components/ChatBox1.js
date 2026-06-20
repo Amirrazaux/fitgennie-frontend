@@ -1,47 +1,35 @@
 "use client";
 
-import React, {
-    useRef,
+import React, { useRef, useEffect, useState } from "react";
 
-    useEffect,
-
-    useState
-
-} from "react";
-
-export default function ChatBox() {
+export default function ChatBox({ userEmail }) {
 
     const [message, setMessage] = useState("");
-
     const [messages, setMessages] = useState([]);
-
     const [typing, setTyping] = useState(false);
 
-    const chatContainerRef=useRef(null);
+    const chatContainerRef = useRef(null);
+
+    // =========================
+    // SCROLL TO BOTTOM
+    // =========================
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop =
+                chatContainerRef.current.scrollHeight;
+        }
+    }, [messages, typing]);
 
     // =========================
     // LOAD CHATS ON START
     // =========================
-
     useEffect(() => {
-
-        if (chatContainerRef.current){
-            chatContainerRef.current.scrollTop=chatContainerRef.current.scrollHeight;
-        }
-    }, [messages, typing]);
-
-    useEffect(()=>{
         loadChats();
-    },[]);
+    }, []);
 
     async function loadChats() {
-
         try {
-
-            const email =
-                localStorage.getItem(
-                    "userEmail"
-                );
+            const email = userEmail || localStorage.getItem("userEmail");
 
             if (!email) return;
 
@@ -51,28 +39,19 @@ export default function ChatBox() {
 
             let data = await response.json();
 
-            // FORMAT DATABASE CHATS
-
-            const formattedChats =
-                data.flatMap((chat) => [
-
-                    {
-                        sender: "user",
-
-                        text: chat.user_message
-                    },
-
-                    {
-                        sender: "ai",
-
-                        text: chat.ai_response
-                    }
-                ]);
+            const formattedChats = data.flatMap((chat) => [
+                {
+                    sender: "user",
+                    text: chat.user_message,
+                },
+                {
+                    sender: "ai",
+                    text: chat.ai_response,
+                },
+            ]);
 
             setMessages(formattedChats);
-
         } catch (error) {
-
             console.log(error);
         }
     }
@@ -80,93 +59,69 @@ export default function ChatBox() {
     // =========================
     // SEND MESSAGE
     // =========================
-
     async function sendMessage() {
-
         if (!message.trim()) return;
 
-        const email =
-            localStorage.getItem(
-                "userEmail"
-            );
+        const email = userEmail || localStorage.getItem("userEmail");
 
-        const currentMessage =
-            message;
-
-        // SHOW USER MESSAGE
+        const currentMessage = message;
 
         setMessages((prev) => [
-
             ...prev,
-
-            {
-                sender: "user",
-
-                text: currentMessage
-            }
+            { sender: "user", text: currentMessage },
         ]);
 
         setMessage("");
         setTyping(true);
+
         try {
-            
             let response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/chat`,
                 {
                     method: "POST",
-
                     headers: {
-                        "Content-Type":
-                        "application/json"
+                        "Content-Type": "application/json",
                     },
-
                     body: JSON.stringify({
-
                         email,
-
-                        message:
-                        currentMessage
-                    })
+                        message: currentMessage,
+                    }),
                 }
             );
 
             let data = await response.json();
+
             setTyping(false);
-            // SHOW AI MESSAGE
 
             setMessages((prev) => [
-
                 ...prev,
-
-                {
-                    sender: "ai",
-
-                    text: data.reply
-                }
+                { sender: "ai", text: data.reply },
             ]);
-
         } catch (error) {
-            setTyping(false)
+            setTyping(false);
             alert("Chat Error");
         }
     }
 
     async function clearChats() {
-        try{
-            const email =localStorage.getItem("userEmail");
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/clear-chat/${email}`,
+        try {
+            const email = userEmail || localStorage.getItem("userEmail");
+
+            await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/clear-chat/${email}`,
                 {
-                    method: "DELETE"
+                    method: "DELETE",
                 }
             );
+
             setMessages([]);
-        }
-        catch (error) 
-        {
+        } catch (error) {
             console.log(error);
         }
-    
     }
+
+   
+
 
 
     return (
